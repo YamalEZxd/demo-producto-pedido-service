@@ -5,6 +5,8 @@ import com.electrostore.pedidos.dto.PedidoRequestDTO;
 import com.electrostore.pedidos.entity.DetallePedido;
 import com.electrostore.pedidos.entity.Pedido;
 import com.electrostore.pedidos.entity.Producto;
+import com.electrostore.pedidos.exception.BadRequestException;
+import com.electrostore.pedidos.exception.ResourceNotFoundException;
 import com.electrostore.pedidos.repository.PedidoRepository;
 import com.electrostore.pedidos.repository.ProductoCustomRepositoryImpl;
 import com.electrostore.pedidos.repository.ProductoRepository;
@@ -33,7 +35,7 @@ public class ElectroStoreService {
 
     public Producto obtenerProductoPorId(Long id) {
         return productoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con el ID: " + id));
     }
 
     public Producto guardarProducto(Producto producto) {
@@ -41,6 +43,9 @@ public class ElectroStoreService {
     }
 
     public void eliminarProducto(Long id) {
+        if (!productoRepository.existsById(id)) {
+            throw new ResourceNotFoundException("No se puede eliminar. Producto no encontrado con ID: " + id);
+        }
         productoRepository.deleteById(id);
     }
 
@@ -69,10 +74,11 @@ public class ElectroStoreService {
 
         for (ItemPedidoRequestDTO item : request.getItems()) {
             Producto producto = productoRepository.findById(item.getProductoId())
-                    .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + item.getProductoId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con el ID: " + item.getProductoId()));
 
             if (producto.getStock() < item.getCantidad()) {
-                throw new RuntimeException("Stock insuficiente para el producto: " + producto.getNombre());
+                throw new BadRequestException("Stock insuficiente para el producto: " + producto.getNombre()
+                        + ". Stock disponible: " + producto.getStock() + ", solicitado: " + item.getCantidad());
             }
 
             producto.setStock(producto.getStock() - item.getCantidad());
@@ -107,6 +113,6 @@ public class ElectroStoreService {
 
     public Pedido obtenerPedidoPorId(Long id) {
         return pedidoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pedido no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Pedido no encontrado con el ID: " + id));
     }
 }

@@ -2,6 +2,7 @@ package com.electrostore.pedidos.controller;
 
 import com.electrostore.pedidos.entity.Producto;
 import com.electrostore.pedidos.service.ElectroStoreService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,12 +29,12 @@ public class ProductoController {
     }
 
     @PostMapping
-    public ResponseEntity<Producto> crear(@RequestBody Producto producto) {
+    public ResponseEntity<Producto> crear(@Valid @RequestBody Producto producto) {
         return new ResponseEntity<>(service.guardarProducto(producto), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Producto> actualizar(@PathVariable Long id, @RequestBody Producto producto) {
+    public ResponseEntity<Producto> actualizar(@PathVariable Long id, @Valid @RequestBody Producto producto) {
         Producto existente = service.obtenerProductoPorId(id);
         existente.setNombre(producto.getNombre());
         existente.setCategoria(producto.getCategoria());
